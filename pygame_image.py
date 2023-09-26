@@ -10,16 +10,18 @@ def main():
 
     tori = pg.image.load("fig/3.png")
     tori=pg.transform.flip(tori, True, False)
-    
-    
-    
+
+    tori_move=pg.transform.rotozoom(tori,10,1.0)
+    tories=[tori,tori_move]
+
     tmr = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: return
 
         screen.blit(bg_img, [0, 0])
-        screen.blit(tori,[300,200])
+
+        screen.blit(tories[tmr%2],[300,200])
         pg.display.update()
         tmr += 1        
         clock.tick(10)
