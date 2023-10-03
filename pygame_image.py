@@ -34,7 +34,6 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     """こうかとん"""
     kk_img = pg.image.load("fig/3.png")
-
     kk_img = pg.transform.rotozoom(kk_img, 0, 2.0)
     kk_rct = kk_img.get_rect()
     kk_rct.center = (900, 400)  # 練習３：こうかとんの初期座標を設定する
@@ -45,7 +44,16 @@ def main():
     bd_rct = bd_img.get_rect()  # 練習１：SurfaceからRectを抽出する
     x, y = random.randint(0, WIDTH), random.randint(0, HEIGHT)
     bd_rct.center = (x, y)  # 練習１：Rectにランダムな座標を設定する
-    vx, vy = +5, +5  # 練習２：爆弾の速度
+    vx,vy = +5,+5
+      # 練習２：爆弾の速度
+
+    """ hougaku={"5,0":pg.taransform.flip(kk_img,True,False),
+             "-5,-5":pg.transform.rotozoom(45,1.0),
+             "0,-5":pg.transform.rotozoom(90,1.0),
+             "5,5":pg.transform.rotozoom(135,1.0),
+             "0,5":pg.transform.rotozoom(270,1.0),
+             "-5,5":pg.transform.rotozoom(315,1.0),
+             "-5,0":pg.transform.rotozoom(0,1.0),}"""
 
     clock = pg.time.Clock()
     tmr = 0
@@ -67,12 +75,16 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]  # 練習３：横方向の合計移動量
                 sum_mv[1] += mv[1]  # 練習３：縦方向の合計移動量
-        kk_rct.move_ip(sum_mv[0], sum_mv[1])  # 練習３：移動させる
+                kk_rct.move_ip(sum_mv[0], sum_mv[1])  # 練習３：移動させる
+        
         if check_bound(kk_rct) != (True, True):  # 練習４：はみだし判定
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) 
-        screen.blit(kk_img, kk_rct)  # 練習３：移動後の座標に表示させる
+        screen.blit(kk_img, kk_rct)
+
         """"ばくだん"""
-        bd_rct.move_ip(vx, vy)  # 練習２：爆弾を移動させる
+        accs=[a for a in range(1,11)]
+        avx,avy=vx*accs[min(tmr//500,9)],vy*accs[min(tmr//500,9)]
+        bd_rct.move_ip(avx, avy)  # 練習２：爆弾を移動させる
         yoko, tate = check_bound(bd_rct)
         if not yoko:  # 練習４：横方向にはみ出たら
             vx *= -1
