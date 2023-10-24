@@ -87,12 +87,22 @@ class Bird(pg.sprite.Sprite):
         引数1 key_lst：押下キーの真理値リスト
         引数2 screen：画面Surface
         """
+        key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         for k, mv in __class__.delta.items():
             if key_lst[k]:
                 self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+
+            #追加機能１
+            for event in pg.event.get(): 
+                if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:
+                    self.speed = 20
+                elif event.type == pg.KEYDOWN:
+                    self.speed = 10
+            #追加機能１
+            
         if check_bound(self.rect) != (True, True):
             for k, mv in __class__.delta.items():
                 if key_lst[k]:
@@ -104,7 +114,7 @@ class Bird(pg.sprite.Sprite):
     
     def get_direction(self) -> tuple[int, int]:
         return self.dire
-    
+
 
 class Bomb(pg.sprite.Sprite):
     """
@@ -226,6 +236,23 @@ class Enemy(pg.sprite.Sprite):
             self.state = "stop"
         self.rect.centery += self.vy
 
+#追加課題２
+class NeoGravity(pg.sprite.Sprite):
+
+    def __init__(self,life):
+        super().__init__()
+        self.image = pg.Surface((WIDTH,HEIGHT))
+        color = (0,0,0)
+        pg.draw.rect(self.image, color, (0,0,WIDTH,HEIGHT))
+        self.image.set_alpha(128)
+        self.rect = self.image.get_rect()
+
+        self.life = life
+    def update(self):
+        self.life -=1
+        if self.life <0:
+            self.kill()
+#追加課題２
 
 class Score:
     """
@@ -239,7 +266,7 @@ class Score:
         self.score = 0
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         self.rect = self.image.get_rect()
-        self.rect.center = 100, HEIGHT-50
+        self.rect.center =100, HEIGHT-50
 
     def score_up(self, add):
         self.score += add
@@ -260,6 +287,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    ngravities = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -270,6 +298,14 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            
+            #追加課題２
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and score.score >= 200:
+                ngravities.add(NeoGravity(400)) #400フレームで生成
+                score.score_up(-200)
+            #追加課題２
+  
+
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -284,6 +320,18 @@ def main():
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
             score.score_up(10)  # 10点アップ
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
+
+
+
+        for bomb in pg.sprite.groupcollide(bombs, ngravities, True, False).keys():
+            exps.add(Explosion(bomb,50))
+            bird.change_img(6, screen)
+
+        for emy in pg.sprite.groupcollide(emys, ngravities, True, False).keys():
+            exps.add(Explosion(emy,100))
+            bird.change_img(6, screen)
+
+
 
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
@@ -306,6 +354,11 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+
+        ngravities.update()
+        ngravities.draw(screen)
+
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
